@@ -1688,10 +1688,12 @@ function _prepareLine($i, $actionTarget = 'order') {
             $specialPrice = new SpecialPrice($db);
             $specialPrice->fetch($array_options["options_special_price"]);
             $obj = new stdClass();
+            $product = new ProductFournisseur($db);
+            $product->find_min_price_product_fournisseur($specialPrice->fk_product, 0, $specialPrice->fk_supplier);
             $obj->fk_product = $specialPrice->fk_product;
             $obj->tva_tx = 20; //todo change that
             $obj->unitprice = $specialPrice->amount;
-            $obj->ref_fourn = $specialPrice->ref_ext;
+            $obj->ref_fourn = (!empty($product->ref_supplier) ? $product->ref_supplier.' - ' : '').$specialPrice->ref_ext;
             $obj->fk_soc = $specialPrice->fk_supplier;
 //            $obj->subprice
         }
@@ -1699,6 +1701,7 @@ function _prepareLine($i, $actionTarget = 'order') {
         if ($obj) {
             $line->id = $lineid;
             $line->qty = $qty;
+            $array_options['options_last_quantity'] = $qty;
             $line->desc = $desc;
             $line->fk_product = $obj->fk_product;
             $line->tva_tx = $obj->tva_tx;
